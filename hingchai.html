@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Chronicle of [Your Name] & Dương Thừa Hưng - Apex Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Custom Properties (Variables) for Theming */
+        :root {
+            --font-primary: 'Poppins', sans-serif;
+            --font-monospace: 'Roboto Mono', monospace;
+
+            /* Light Mode (Default) */
+            --bg-color: #f4f7f6; /* Off-white, slightly cool */
+            --text-color: #333745; /* Dark grey, almost black */
+            --heading-color: #1d2d44; /* Darker blue/grey */
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --primary-accent: #007bff; /* Vibrant blue */
+            --secondary-accent: #67c7eb; /* Lighter, sky blue */
+            --highlight-accent: #ff6b6b; /* Soft red for attention */
+            --nav-bg: rgba(255, 255, 255, 0.7); /* For glassmorphism */
+            --nav-text: #1d2d44;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --shadow-strong-color: rgba(0, 0, 0, 0.15);
+            --scrollbar-thumb: #c1c1c1;
+            --scrollbar-track: #f1f1f1;
+            --button-hover-bg: #0056b3;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a; /* Very dark blue */
+            --text-color: #cbd5e1; /* Light grey/blue */
+            --heading-color: #e2e8f0; /* Almost white */
+            --card-bg: #1e293b; /* Dark slate blue */
+            --border-color: #334155; /* Mid-dark blue/grey */
+            --primary-accent: #38bdf8; /* Lighter vibrant blue */
+            --secondary-accent: #0ea5e9; /* Sky blue */
+            --highlight-accent: #fb7185; /* Pinkish red */
+            --nav-bg: rgba(30, 41, 59, 0.7); /* Dark glassmorphism */
+            --nav-text: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-strong-color: rgba(0, 0, 0, 0.4);
+            --scrollbar-thumb: #4a5568;
+            --scrollbar-track: #2d3748;
+            --button-hover-bg: #2563eb;
+        }
+
+        /* Global Resets & Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px; /* Base font size */
+        }
+
+        body {
+            font-family: var(--font-primary);
+            line-height: 1.7;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar (Webkit) */
+        body::-webkit-scrollbar { width: 10px; }
+        body::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        body::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 20px; border: 2px solid var(--scrollbar-track); }
+        body::-webkit-scrollbar-thumb:hover { background-color: var(--primary-accent); }
+
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 25px;
+        }
+
+        /* Headings and Text */
+        h1, h2, h3, h4 {
+            font-family: var(--font-primary);
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 0.7em;
+            line-height: 1.3;
+            transition: color 0.3s ease;
+        }
+        h1 { font-size: clamp(2.5rem, 5vw, 3.8rem); }
+        h2 { font-size: clamp(1.8rem, 4vw, 2.5rem); text-align: center; margin-bottom: 1.5em;}
+        h3 { font-size: clamp(1.3rem, 3vw, 1.8rem); }
+        p { margin-bottom: 1.2em; font-size: 1rem; font-weight: 400; }
+        a { color: var(--primary-accent); text-decoration: none; font-weight: 600; transition: color 0.3s ease, transform 0.2s ease; }
+        a:hover { color: var(--highlight-accent); transform: translateY(-1px); }
+
+        /* Theme Toggle Button */
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 2000;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: all 0.3s ease;
+        }
+        #theme-toggle:hover {
+            background-color: var(--primary-accent);
+            color: white;
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        /* Header */
+        .site-header {
+            padding: 4em 0 2em; /* More padding */
+            text-align: center;
+            position: relative; /* For potential pseudo-elements or particles */
+        }
+        .site-header .hero-title { /* For typewriter effect */
+            color: var(--heading-color);
+            min-height: 70px; /* Adjust based on longest title possibility */
+            font-weight: 700;
+        }
+        .site-header .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 1.5em;
+        }
+
+        /* Animated Gradient Background for Header or Hero */
+        .animated-gradient-hero {
+            background: linear-gradient(-45deg, var(--primary-accent), var(--secondary-accent), #23a6d5, #ff6b6b);
+            background-size: 400% 400%;
+            animation: gradientBG 18s ease infinite;
+            color: white; /* Ensure text is readable on gradient */
+        }
+        .animated-gradient-hero h1, .animated-gradient-hero .subtitle {
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Navigation - Glassmorphism */
+        .main-nav {
+            background-color: var(--nav-bg);
+            backdrop-filter: blur(10px); /* The Glassmorphism! */
+            -webkit-backdrop-filter: blur(10px); /* For Safari */
+            padding: 1em 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 15px var(--shadow-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .main-nav ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .main-nav ul li {
+            margin: 0 10px; /* Reduced margin for more items */
+        }
+        .main-nav ul li a {
+            color: var(--nav-text);
+            font-weight: 600;
+            padding: 0.6em 1em;
+            border-radius: 6px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            display: inline-block; /* For padding and transform */
+            letter-spacing: 0.5px;
+        }
+        .main-nav ul li a:hover, .main-nav ul li a.active {
+            background-color: var(--primary-accent);
+            color: white;
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        /* Main Content Area */
+        main.container {
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+
+        /* Sections General Styling */
+        .content-section, .hero-section-content { /* Renamed hero section for content part */
+            background-color: var(--card-bg);
+            padding: clamp(20px, 5vw, 50px); /* Responsive padding */
+            margin-bottom: 40px;
+            border-radius: 12px; /* More rounded */
+            box-shadow: 0 8px 25px var(--shadow-color);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .content-section.is-visible, .hero-section-content.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Hero Section (Content Part) */
+        .hero-section-content { /* This is the card within the animated gradient header */
+            text-align: center;
+            background-color: var(--card-bg); /* Override gradient if you want content on a card */
+        }
+         .hero-section-content h2, .hero-section-content p {
+            color: var(--text-color); /* Revert text color if on card bg */
+            text-shadow: none;
+        }
+        .quick-links { margin-top: 25px; }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--primary-accent), var(--secondary-accent));
+            color: white;
+            padding: 14px 30px;
+            border-radius: 50px; /* Pill shape */
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: var(--font-primary);
+            margin: 8px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px var(--shadow-strong-color);
+            filter: brightness(1.1);
+        }
+        .graduation-highlight {
+            margin-top: 35px;
+            padding: 25px;
+            background-color: rgba(0,0,0,0.03); /* Subtle */
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-accent);
+        }
+        [data-theme="dark"] .graduation-highlight {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+
+        /* Timeline Styling - More Modern */
+        #our-story { position: relative; } /* For the central line */
+        #our-story::before { /* The central vertical line */
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background-color: var(--border-color);
+            transform: translateX(-50%);
+            z-index: -1; /* Behind events */
+            border-radius: 2px;
+        }
+        .timeline-event {
+            position: relative;
+            margin-bottom: 50px;
+            width: 50%;
+            padding: 25px;
+            background-color: var(--card-bg); /* Events on cards */
+            border-radius: 10px;
+            box-shadow: 0 6px 18px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .timeline-event:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px var(--shadow-strong-color);
+        }
+        /* Alternating sides */
+        .timeline-event:nth-child(odd) { left: 0; padding-right: 50px; text-align: right;}
+        .timeline-event:nth-child(even) { left: 50%; padding-left: 50px; text-align: left;}
+        
+        /* Connecting dot and arrow */
+        .timeline-event::after { /* The dot on the central line */
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary-accent);
+            border: 4px solid var(--bg-color);
+            border-radius: 50%;
+            top: 30px; /* Adjust alignment */
+            z-index: 1;
+        }
+        .timeline-event:nth-child(odd)::after { right: -10px; transform: translateX(50%); }
+        .timeline-event:nth-child(even)::after { left: -10px; transform: translateX(-50%); }
+
+        .event-date { margin-bottom: 10px; }
+        .event-date .year { font-size: 1.6em; font-weight: 700; color: var(--primary-accent); display: block; }
+        .event-date .milestone { font-size: 0.9em; color: var(--text-color); opacity: 0.8; font-family: var(--font-monospace); }
+        .event-details img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 15px; box-shadow: 0 5px 15px var(--shadow-color); }
+        .current-milestone .event-details h3 { color: var(--highlight-accent); }
+
+        /* Gallery Styling */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Larger minmax */
+            gap: 25px;
+        }
+        .gallery-item {
+            background-color: var(--card-bg); /* Already set for section */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative; /* For overlay */
+            cursor: pointer;
+        }
+        .gallery-item:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 10px 25px var(--shadow-strong-color);
+        }
+        .gallery-item img { width: 100%; height: 220px; object-fit: cover; display: block; transition: transform 0.4s ease; }
+        .gallery-item:hover img { transform: scale(1.1); }
+        .gallery-item .caption-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            color: white;
+            padding: 20px 15px 10px;
+            font-size: 0.95em;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .gallery-item:hover .caption-overlay { opacity: 1; transform: translateY(0); }
+
+        /* Legends & Lore (Jokes) */
+        .lore-entry {
+            padding: 25px; margin-bottom: 20px;
+            border-radius: 10px;
+            border-left: 6px solid var(--highlight-accent);
+            background: linear-gradient(135deg, var(--card-bg) 80%, var(--bg-color) 100%);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        .lore-entry h4 { color: var(--heading-color); margin-bottom: 0.4em; font-weight: 600;}
+        .lore-entry p { font-size: 1em; margin-bottom: 0.4em; }
+        .lore-entry p em { color: var(--secondary-accent); font-size: 0.9em; font-family: var(--font-monospace); }
+
+        /* Anthems (Song List) */
+        .song-list { list-style-type: none; padding-left: 0; }
+        .song-list li {
+            padding: 20px; margin-bottom: 15px; border-radius: 10px;
+            border-left: 6px solid var(--secondary-accent);
+            background: linear-gradient(135deg, var(--card-bg) 80%, var(--bg-color) 100%);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            display: flex; align-items: center; /* For icon */
+        }
+        .song-list li::before { /* Music note icon (pseudo) */
+            content: '🎵'; 
+            font-size: 1.5em;
+            margin-right: 15px;
+            color: var(--secondary-accent);
+        }
+        .song-list li strong { color: var(--heading-color); font-weight: 600; }
+
+        /* Future Pact */
+        .future-goals h3 {
+            margin-top: 25px;
+            border-bottom: 3px solid var(--primary-accent);
+            padding-bottom: 8px; display: inline-block; /* To fit border to text */
+        }
+        .future-goals ul { list-style-type: none; padding-left: 0; }
+        .future-goals ul li { margin-bottom: 10px; padding-left: 30px; position: relative; font-weight: 400; }
+        .future-goals ul li::before { /* Custom bullet */
+            content: '🚀'; /* Rocket or '☆' or '✓' */
+            position: absolute; left: 0; top: 0;
+            color: var(--primary-accent); font-size: 1.2em;
+        }
+        .message-to-future-selves {
+            margin-top: 40px; padding: 30px;
+            background-color: var(--card-bg);
+            border: 2px dashed var(--border-color); border-radius: 10px;
+            box-shadow: 0 0 15px var(--shadow-color) inset;
+        }
+        .message-to-future-selves h3 { color: var(--highlight-accent); text-align: center;}
+        .message-to-future-selves p strong { font-family: var(--font-monospace); }
+
+
+        /* Footer */
+        .site-footer {
+            background-color: var(--heading-color); /* Darker for contrast */
+            color: var(--bg-color); /* Light text on dark bg */
+            text-align: center;
+            padding: 3em 0;
+            margin-top: 50px;
+        }
+        .site-footer p { margin-bottom: 0.5em; opacity: 0.8; font-size: 0.95rem;}
+        .site-footer p a { color: var(--secondary-accent); }
+        .site-footer p a:hover { color: white; }
+
+        /* Image Modal (Lightbox) */
+        .image-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2000;
+            padding-top: 50px;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: auto;
+            max-width: 90%;
+            max-height: 85vh;
+            animation-name: zoomIn;
+            animation-duration: 0.4s;
+        }
+        .close-modal {
+            position: absolute;
+            top: 25px; right: 45px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .close-modal:hover, .close-modal:focus { color: #bbb; text-decoration: none; }
+        #modal-caption {
+            margin: auto; display: block; width: 80%; max-width: 700px;
+            text-align: center; color: #ccc; padding: 15px 0; height: 50px;
+            font-family: var(--font-monospace);
+        }
+        @keyframes zoomIn {
+            from {transform:scale(0.8); opacity: 0;}
+            to {transform:scale(1); opacity: 1;}
+        }
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            #our-story::before { left: 30px; } /* Move timeline line to left */
+            .timeline-event { width: auto; left: 0 !important; margin-left: 60px; text-align: left !important; padding-left: 25px !important; padding-right: 25px !important;}
+            .timeline-event:nth-child(odd), .timeline-event:nth-child(even) {
+                left: 0 !important; padding-left: 25px !important; padding-right: 25px !important; text-align: left !important;
+            }
+            .timeline-event::after { left: -40px !important; transform: translateX(0) !important; } /* Adjust dot */
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.3rem; }
+            h2 { font-size: 1.9rem; }
+            .main-nav ul { flex-direction: column; align-items: center; }
+            .main-nav ul li { margin: 8px 0; }
+        }
+        @media (max-width: 480px) {
+            .content-section, .hero-section-content { padding: 25px 15px; }
+            .btn { padding: 12px 24px; font-size: 0.9rem; }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .gallery-item img { height: 200px; }
+            #theme-toggle { top: 10px; right: 10px; padding: 8px 10px; font-size: 1rem; }
+        }
+        
+        /* Subtle Float/Pulse Animation */
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+    </style>
+</head>
+<body>
+    <button id="theme-toggle" title="Toggle theme">🌙</button>
+
+    <header class="site-header animated-gradient-hero">
+        <div class="header-content container">
+            <h1 id="main-hero-title" class="hero-title"></h1> <!-- Empty for typewriter -->
+            <p class="subtitle">From Grade 10 Shenanigans (2022) to Graduation Triumphs (Today!) & The Epic Future!</p>
+        </div>
+    </header>
+
+    <nav class="main-nav">
+        <ul class="container">
+            <li><a href="#home-content">Home Base</a></li>
+            <li><a href="#our-story">Our Story</a></li>
+            <li><a href="#gallery">Visual Archives</a></li>
+            <li><a href="#legends-lore">Legends & Lore</a></li>
+            <li><a href="#anthems">Our Anthems</a></li>
+            <li><a href="#future-pact">Future Pact</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+
+        <section id="home-content" class="hero-section-content"> <!-- Changed ID to avoid conflict -->
+            <h2>Brothers by Choice, Legends by Graduation!</h2>
+            <p>Welcome to the digital monument of our epic friendship, [Your Name] and Dương Thừa Hưng. This is where our stories live on. Today we graduate, but the adventure is just accelerating!</p>
+            <div class="quick-links">
+                <a href="#our-story" class="btn">Relive the Journey</a>
+                <a href="#gallery" class="btn">See the Evidence</a>
+            </div>
+            <div class="graduation-highlight float-animation">
+                <h3>Caps Off to Us! Class of 2024!</h3>
+                <p>Remember this day – the culmination of high school and the launchpad for everything ridiculously awesome that comes next.</p>
+            </div>
+        </section>
+
+        <section id="our-story" class="content-section">
+            <h2>Our Story: The Unfolding Timeline</h2>
+            <p style="text-align: center;">From awkward Grade 10 introductions in 2022 to conquering senior year. Every legendary (and slightly embarrassing) memory logged here.</p>
+            <button id="randomMemoryBtn" class="btn" style="display:block; margin: 20px auto 40px;">Summon a Random Memory!</button>
+
+            <article class="timeline-event" id="memory-2022-met">
+                <div class="event-date">
+                    <span class="year">2022</span>
+                    <span class="milestone">Grade 10 - Genesis</span>
+                </div>
+                <div class="event-details">
+                    <h3>The "How We Met" Origin Story</h3>
+                    <p>That fateful day in [Nerd Herd Club / Detention / Chemistry Lab Explosion Site]. Little did we know. [Your Name] probably thought Dương Thừa Hưng was [some witty observation], and Dương Thừa Hưng figured [Your Name] was [another witty observation]. Spot on, mostly.</p>
+                </div>
+            </article>
+
+            <article class="timeline-event" id="memory-2023-trip">
+                <div class="event-date">
+                    <span class="year">2023</span>
+                    <span class="milestone">Project Mayhem</span>
+                </div>
+                <div class="event-details">
+                    <h3>The Great "[Physics Project / Drama Production / Debate Tournament]" Debacle</h3>
+                    <p>That time our project nearly caused an international incident / won by accident. Dương Thừa Hưng's genius move was [specific genius move], while [Your Name] was busy [hilarious distraction / contribution]. The result? Pure, unadulterated legend.</p>
+                    <img src="https://via.placeholder.com/500x280/67c7eb/ffffff?text=Project+Victory+(Mostly)" alt="Placeholder for a key event photo">
+                </div>
+            </article>
+
+            <article class="timeline-event current-milestone" id="memory-2024-graduation">
+                <div class="event-date">
+                    <span class="year">TODAY</span>
+                    <span class="milestone">GRADUATION APEX!</span>
+                </div>
+                <div class="event-details">
+                    <h3>WE DID IT! High School: Level Complete!</h3>
+                    <p>Caps flying, diplomas clutched, slightly terrified grins. We actually survived [Toughest Teacher]'s reign and [Most Dreaded Subject]. So proud of us, bro. The world has no idea what's coming. Make sure Dương Thừa Hưng doesn't lose his diploma, and [Your Name] tries to look dignified for at least one photo.</p>
+                    <img src="https://via.placeholder.com/500x280/ff6b6b/ffffff?text=GRADUATION+LEGENDS!" alt="Graduation day!">
+                </div>
+            </article>
+        </section>
+
+        <section id="gallery" class="content-section">
+            <h2>The Visual Archives: Undeniable Proof</h2>
+            <p style="text-align:center;">A picture is worth a thousand inside jokes. Behold, the evidence of our... unique journey.</p>
+            <div class="gallery-grid">
+                <div class="gallery-item" data-caption="Early days trying to look cool. We failed. - 2022">
+                    <img src="https://via.placeholder.com/350x220/1d2d44/e2e8f0?text=Circa+2022" alt="[Your Name] and Dương Thừa Hưng early days">
+                    <div class="caption-overlay">Early days trying to look cool. We failed. - 2022</div>
+                </div>
+                <div class="gallery-item" data-caption="Dương Thừa Hưng's questionable dance moves at the school fair.">
+                    <img src="https://via.placeholder.com/350x220/007bff/ffffff?text=Dance+Off+Fail" alt="A hilarious moment">
+                    <div class="caption-overlay">Dương Thừa Hưng's questionable dance moves...</div>
+                </div>
+                <div class="gallery-item" data-caption="That time [Your Name] almost set the lab on fire.">
+                    <img src="https://via.placeholder.com/350x220/ff6b6b/ffffff?text=Lab+Incident" alt="School event photo">
+                     <div class="caption-overlay">That time [Your Name] almost set the lab on fire.</div>
+                </div>
+                <div class="gallery-item" data-caption="Video: Our attempt to build a robot that actually worked. (Spoiler: It didn't).">
+                    <img src="https://via.placeholder.com/350x220/67c7eb/1d2d44?text=Robot+Wars+(We+Lost)" alt="Video Placeholder">
+                    <div class="caption-overlay">Video: Our attempt to build a robot... (Spoiler: It didn't).</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Image Modal Structure -->
+        <div id="imageModal" class="image-modal">
+            <span class="close-modal" title="Close">×</span>
+            <img class="modal-content" id="modalImageItself">
+            <div id="modal-caption"></div>
+        </div>
+
+
+        <section id="legends-lore" class="content-section">
+            <h2>Legends & Lore: The Sacred Scrolls</h2>
+            <p style="text-align:center;">The phrases, the myths, the legendary one-liners that define our brotherhood. Handle with reverence (and laughter).</p>
+            <div class="lore-entry">
+                <h4>The "Are you sure that's edible?" Protocol</h4>
+                <p><strong>Origin:</strong> Any time [Your Name] attempted to cook, or Dương Thừa Hưng brought "experimental" snacks to a study session. Usually followed by cautious sniffing.</p>
+                <p><em>Codified: Grade 10, post-Mystery-Casserole incident.</em></p>
+            </div>
+            <div class="lore-entry">
+                <h4>"It's not procrastination, it's strategic incubation of genius!"</h4>
+                <p><strong>Origin:</strong> Our official motto for every assignment started 12 hours before the deadline. Surprisingly effective... sometimes.</p>
+            </div>
+        </section>
+
+        <section id="anthems" class="content-section">
+            <h2>Our Anthems: The Saga Soundtrack</h2>
+            <p style="text-align:center;">The beats that powered our victories, soothed our defeats, and made car rides epic.</p>
+            <ul class="song-list">
+                <li>
+                    <strong>"We Are The Champions" by Queen:</strong> For that one time we actually won something (or felt like we did).
+                </li>
+                <li>
+                    <strong>"[Your Go-To Hype Song]" by [Artist]:</strong> Standard issue for pre-exam panic/motivation.
+                </li>
+                <li>
+                    <strong>"[Your Shared Chill/Deep Talk Song]" by [Artist]:</strong> For those 2 AM existential crises and philosophical breakthroughs.
+                </li>
+            </ul>
+        </section>
+
+        <section id="future-pact" class="content-section">
+            <h2>The Future Pact: Sealed in Pixels</h2>
+            <p style="text-align:center;">High school: Conquered. The world: Next. This is our solemn, digitally-inked vow.</p>
+            <div class="future-goals">
+                <h3>Dương Thừa Hưng's Prophecies for [Your Name]:</h3>
+                <p><em>([Dương Thừa Hưng, be creative!]) Example: By 2034, [Your Name] will have won a Nobel Prize for "Exceptional Napping" and will communicate exclusively via interpretive dance.</em></p>
+
+                <h3>[Your Name]'s Visions for Dương Thừa Hưng:</h3>
+                <p><em>([Your Name], make it good!]) Example: Dương Thừa Hưng will have built a self-aware AI that primarily makes perfect toast, and will accidentally become the benevolent ruler of a small, grateful nation.</em></p>
+
+                <h3>Our Unbreakable Bucket List (Version 2.0):</h3>
+                <ul>
+                    <li><del>Survive High School (Achievement Unlocked!)</del></li>
+                    <li>Road trip to a place with no Wi-Fi and questionable roadside diners.</li>
+                    <li>Attend a concert of a band we discover *after* high school.</li>
+                    <li>Build something ridiculously ambitious together (that probably won't work).</li>
+                    <li>Successfully assemble IKEA furniture without a single argument (The Ultimate Challenge).</li>
+                    <li>Ensure the embarrassing stories from this archive are read at critical life junctures.</li>
+                </ul>
+            </div>
+            <div class="message-to-future-selves">
+                <h3>A Communiqué to Our Future Selves (Decrypt in June 2034):</h3>
+                <p><strong>[Your Name] Log:</strong> Yo, Future [Your Name]! Still got that [quirky habit]? Hope you and Future Hưng are still partners in crime. Remember that feeling today, on graduation? Pure, unadulterated potential. Don't waste it. And for crying out loud, call your parents.</p>
+                <p><strong>Dương Thừa Hưng Record:</strong> Greetings, Future Me. Hope you've learned how to [something you're bad at now]. Is [Your Name] still [his endearing/annoying trait]? This archive is proof we were legends. Keep the legacy alive. P.S. Did we ever figure out [unsolved mystery from high school]?</p>
+                <p><strong>Transmission End: Graduation Day, 2024. GLHF.</strong></p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <p>© 2022 - <span id="currentYear"></span> The Ever-Expanding, Highly Classified Archives of [Your Name] & Dương Thừa Hưng.</p>
+        <p>Crafted with Code & Comradery. Maintained by Memories & Mayhem.</p>
+        <p>To Infinity... and the next pizza run! 🚀🍕</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Dynamic Year in Footer ---
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // --- Theme Toggle ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') {
+                themeToggle.textContent = '☀️'; // Sun for light mode
+            }
+        } else { // Default to light if no preference
+            document.documentElement.setAttribute('data-theme', 'light');
+            themeToggle.textContent = '🌙'; // Moon for dark mode
+        }
+
+        themeToggle.addEventListener('click', () => {
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                themeToggle.textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        });
+
+        // --- Typewriter Effect ---
+        const heroTitleElement = document.getElementById('main-hero-title');
+        const titles = [
+            "The [Your Name] & Dương Thừa Hưng Saga!",
+            "Chronicles of Two Legends!",
+            "Our Epic High School Exit!"
+        ];
+        let currentTitleIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typeSpeed = 120;
+        const deleteSpeed = 60;
+        const delayBetweenTitles = 2000;
+
+        function typeWriter() {
+            const currentText = titles[currentTitleIndex];
+            if (isDeleting) {
+                heroTitleElement.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                heroTitleElement.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            if (!isDeleting && charIndex === currentText.length) {
+                isDeleting = true;
+                setTimeout(typeWriter, delayBetweenTitles);
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                currentTitleIndex = (currentTitleIndex + 1) % titles.length;
+                setTimeout(typeWriter, typeSpeed);
+            } else {
+                setTimeout(typeWriter, isDeleting ? deleteSpeed : typeSpeed);
+            }
+        }
+        if (heroTitleElement) typeWriter();
+
+
+        // --- Smooth Scrolling & Active Nav Link (Simplified) ---
+        const navLinks = document.querySelectorAll('.main-nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Basic smooth scroll is handled by CSS `scroll-behavior: smooth;`
+                // Remove 'active' class from all links
+                navLinks.forEach(nav => nav.classList.remove('active'));
+                // Add 'active' class to the clicked link
+                this.classList.add('active');
+            });
+        });
+        // You might want a more robust active link on scroll detector later
+
+        // --- Fade-in animations for sections on scroll ---
+        const sections = document.querySelectorAll('.content-section, .hero-section-content'); // Adjusted selector
+        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        sections.forEach(section => observer.observe(section));
+
+        // --- Random Memory Button ---
+        const randomMemoryBtn = document.getElementById('randomMemoryBtn');
+        const memoryEvents = document.querySelectorAll('.timeline-event');
+        if (randomMemoryBtn && memoryEvents.length > 0) {
+            randomMemoryBtn.addEventListener('click', () => {
+                const randomIndex = Math.floor(Math.random() * memoryEvents.length);
+                const randomMemory = memoryEvents[randomIndex];
+                
+                const originalBg = randomMemory.style.backgroundColor;
+                randomMemory.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
+                randomMemory.style.backgroundColor = 'var(--secondary-accent)';
+                randomMemory.style.transform = 'scale(1.03)';
+                
+                setTimeout(() => {
+                    randomMemory.style.backgroundColor = originalBg; // Revert or to var(--card-bg)
+                    randomMemory.style.transform = 'scale(1)';
+                }, 2000);
+
+                const navHeight = document.querySelector('.main-nav')?.offsetHeight || 70;
+                const elementPosition = randomMemory.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - navHeight - 30;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            });
+        } else if (randomMemoryBtn) {
+            randomMemoryBtn.textContent = "Add memories to summon!";
+            randomMemoryBtn.disabled = true;
+        }
+
+        // --- Image Modal Logic ---
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImageItself");
+        const captionText = document.getElementById("modal-caption");
+        const galleryItems = document.querySelectorAll(".gallery-item");
+        const spanClose = document.querySelector(".close-modal");
+
+        galleryItems.forEach(item => {
+            item.addEventListener('click', function(){
+                if (this.querySelector('img')) { // Ensure there's an image
+                    modal.style.display = "block";
+                    modalImg.src = this.querySelector('img').src;
+                    captionText.innerHTML = this.dataset.caption || this.querySelector('.caption-overlay')?.textContent || "Image from our adventures";
+                } else if (this.querySelector('a img')) { // For video placeholders etc.
+                    alert("This is a video placeholder. Functionality to play video would be added here.");
+                }
+            });
+        });
+
+        if(spanClose) {
+            spanClose.onclick = function() {
+                modal.style.display = "none";
+            }
+        }
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+         // Close with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && modal.style.display === "block") {
+                modal.style.display = "none";
+            }
+        });
+
+    });
+    </script>
+</body>
+</html>
