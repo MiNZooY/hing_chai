@@ -76,26 +76,10 @@
             visibility: hidden;
             pointer-events: none;
         }
-        .preloader-content {
-            text-align: center;
-            font-family: var(--font-serif);
-            color: var(--text-color);
-        }
-        .preloader-content p {
-            font-size: 1.2rem;
-            margin-top: 20px;
-            animation: fadeInText 1.5s ease-in;
-        }
+        .preloader-content { text-align: center; font-family: var(--font-serif); color: var(--text-color); }
+        .preloader-content p { font-size: 1.2rem; margin-top: 20px; animation: fadeInText 1.5s ease-in; }
         @keyframes fadeInText { from { opacity: 0; } to { opacity: 1; } }
-        .preloader-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(var(--accent-color-rgb), 0.3);
-            border-top-color: var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1.2s linear infinite;
-            margin: 0 auto;
-        }
+        .preloader-spinner { width: 50px; height: 50px; border: 4px solid rgba(var(--accent-color-rgb), 0.3); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1.2s linear infinite; margin: 0 auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
         #theme-toggle { position: fixed; top: 15px; right: 15px; background-color: var(--book-bg); color: var(--text-color); border: 1px solid rgba(0,0,0,0.1); padding: 8px 10px; border-radius: 50%; cursor: pointer; z-index: 5000; font-size: 1.1rem; box-shadow: 0 2px 8px var(--shadow-color); }
@@ -104,73 +88,63 @@
         .book {
             position: relative;
             width: 90vw;
-            max-width: 900px;
-            aspect-ratio: 10 / 7;
+            max-width: 600px; /* Adjusted for single page */
+            aspect-ratio: 7 / 10; /* Portrait aspect ratio */
             height: auto;
-            max-height: 70vh;
-            perspective: 2500px;
-            transition: transform 0.5s ease-in-out;
-            transform: scale(0.95) rotateX(10deg);
+            max-height: 85vh;
             opacity: 0;
+            transform: scale(0.95);
             animation: bookLoad 1s 0.5s forwards cubic-bezier(0.23, 1, 0.32, 1);
         }
         @keyframes bookLoad {
-            to { transform: scale(1) rotateX(0deg); opacity: 1; }
+            to { transform: scale(1); opacity: 1; }
         }
-        .no-touch .book:hover { transform: scale(1.03) rotateX(0deg); }
         
         .page {
             position: absolute;
-            width: 50%; height: 100%;
-            top: 0; left: 50%;
-            transform-origin: left center;
-            transition: transform 1.2s cubic-bezier(0.76, 0.01, 0.2, 1), z-index 0s 0.6s;
-            transform-style: preserve-3d;
-            border-radius: 0 6px 6px 0;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            display: flex; flex-direction: column;
+            background-color: var(--book-bg);
+            border-radius: 6px;
+            box-shadow: 0 5px 20px 5px var(--shadow-color);
+            overflow: hidden;
+            
+            /* Page transition */
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(20px) scale(0.98);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            z-index: 1;
+        }
+        .page.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0) scale(1);
+            z-index: 10;
+        }
+        .page.exiting {
+            opacity: 0;
+            transform: translateX(-20px) scale(0.98);
+            z-index: 5;
         }
 
         .page-content {
-            position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden;
+            width: 100%; height: 100%;
             display: flex; flex-direction: column;
-            background-color: var(--book-bg);
-            padding: clamp(15px, 3vw, 40px);
-            border: 1px solid rgba(0,0,0,0.08);
+            padding: clamp(20px, 5vw, 40px);
             overflow-y: auto;
         }
         .page-content::-webkit-scrollbar { width: 4px; }
         .page-content::-webkit-scrollbar-thumb { background-color: var(--accent-color); }
         
-        .front-side { z-index: 1; border-radius: 0 6px 6px 0; }
-        .back-side { transform: rotateY(180deg); z-index: 0; border-radius: 6px 0 0 6px; }
-        .page.flipped { transform: rotateY(-180deg); }
-        
         .page-inner-content { flex-grow: 1; display: flex; flex-direction: column; }
         
-        .page::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to left, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 20%); opacity: 0; transition: opacity 0.6s; pointer-events: none; }
-        .page.flipped::after { background: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 20%); opacity: 1; transition: opacity 0.4s 0.2s; }
-        
-        .no-touch .page:not(.flipped) .front-side::before { content: ''; position: absolute; top: 0; right: 0; width: 50px; height: 50px; background: radial-gradient(circle at top right, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%); opacity: 0; transition: opacity 0.3s; cursor: pointer; }
-        .no-touch .page:not(.flipped):hover .front-side::before { opacity: 1; }
-        
-        /* Corrected Z-Index Stacking Logic */
-        #cover { z-index: 20; }
-        #page-1 { z-index: 19; }
-        #page-2 { z-index: 18; }
-        #page-3 { z-index: 17; }
-        #back-cover { z-index: 16; }
-
-        #cover.flipped { z-index: 1; }
-        #page-1.flipped { z-index: 2; }
-        #page-2.flipped { z-index: 3; }
-        #page-3.flipped { z-index: 4; }
-        #back-cover.flipped { z-index: 5; }
-        
-        .book-spine { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 100%; background: #283747; box-shadow: inset 3px 0 5px var(--shadow-color), inset -3px 0 5px var(--shadow-color); z-index: 10; }
-        #cover .front-side, #back-cover .back-side { background-color: var(--book-cover-color); color: var(--book-cover-text); }
-        
-        #cover .front-side::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 48%, rgba(255,255,255,0) 52%); transform: rotate(20deg); opacity: 0; animation: lightGlint 4s 1.5s ease-in-out forwards; }
-        @keyframes lightGlint { 0% { transform: translateX(-100%) rotate(20deg); opacity: 0; } 25% { transform: translateX(0) rotate(20deg); opacity: 1; } 75% { opacity: 1; } 100% { transform: translateX(100%) rotate(20deg); opacity: 0; } }
+        /* Specific page styles */
+        #cover, #back-cover {
+            background-color: var(--book-cover-color);
+            color: var(--book-cover-text);
+        }
 
         #prev-page-btn, #next-page-btn { position: fixed; top: 50%; transform: translateY(-50%); z-index: 2000; background-color: rgba(0,0,0,0.3); color: white; border: none; padding: 20px 12px; font-size: 1.8rem; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
         .no-touch #prev-page-btn:hover, .no-touch #next-page-btn:hover { background-color: rgba(0,0,0,0.6); transform: translateY(-50%) scale(1.1); }
@@ -178,13 +152,13 @@
         
         .content-centered { justify-content: center; align-items: center; text-align: center; }
         .content-top { justify-content: flex-start; }
-        h2 { font-family: var(--font-heading); color: var(--heading-color); margin-bottom: 0.7em; text-align: center; font-size: clamp(1.4rem, 3vw, 2.2rem); }
-        p, li { font-size: clamp(0.8rem, 2vw, 1rem); }
+        h2 { font-family: var(--font-heading); color: var(--heading-color); margin-bottom: 0.7em; text-align: center; font-size: clamp(1.4rem, 4vw, 2.2rem); }
+        p, li { font-size: clamp(0.9rem, 2.5vw, 1.1rem); }
         
         .roadmap-list { margin-top: 20px; padding-left: 5px;}
         .roadmap-item { position: relative; border-left: 2px solid var(--accent-color); padding: 5px 0 10px 20px; margin-left:8px; margin-bottom: 15px; }
         .roadmap-item::before { content: '🎓'; position: absolute; left: -10px; top: 8px; background-color: var(--book-bg); line-height: 1; }
-        .roadmap-item h4 { margin: 0 0 5px; font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
+        .roadmap-item h4 { margin: 0 0 5px; font-size: clamp(1rem, 3vw, 1.2rem); }
         
         #dust-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; } .dust-mite { position: absolute; background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; animation: float 20s infinite; } @keyframes float { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translate(var(--x-end), var(--y-end)); opacity: 0; } }
 
@@ -193,7 +167,7 @@
         .vertical-slider-container { flex-grow: 1; position: relative; overflow: hidden; border-radius: 5px; box-shadow: inset 0 0 10px var(--shadow-color); height: 100%; }
         .v-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; transition: transform 0.7s cubic-bezier(0.86, 0, 0.07, 1); }
         .v-slide img { max-width: 100%; max-height: 75%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 12px var(--shadow-color); }
-        .v-slide .v-slide-caption { margin-top: 15px; font-style: italic; font-size: clamp(0.75rem, 1.8vw, 0.9rem); color: var(--highlight-accent); }
+        .v-slide .v-slide-caption { margin-top: 15px; font-style: italic; font-size: clamp(0.8rem, 2vw, 0.9rem); color: var(--highlight-accent); }
         .slider-nav { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); z-index: 10; display: flex; flex-direction: column; gap: 10px; }
         .slider-nav button { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent-color); color: var(--accent-color); background-color: var(--book-bg); cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: all 0.2s; }
         #slide-counter { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.3); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-family: var(--font-heading); }
@@ -202,185 +176,31 @@
         [data-theme="dark"] .single-song-container { background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
         .single-song-container h4 { font-family: var(--font-handwriting); font-size: clamp(1.2rem, 3vw, 1.5rem); color: var(--highlight-accent); margin-bottom: 8px; }
         
-        .envelope-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            padding: 20px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        .no-touch .envelope-wrapper:hover {
-            transform: scale(1.05);
-            background-color: rgba(var(--accent-color-rgb), 0.05);
-        }
-        .envelope-icon {
-            position: relative;
-            width: 150px;
-            height: 100px;
-            background-color: #f3d9b1;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-        [data-theme="dark"] .envelope-icon {
-            background-color: #6d5b41;
-        }
-        .envelope-icon::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60%;
-            background-color: #e6c89c;
-            clip-path: polygon(0 0, 100% 0, 50% 100%);
-            border-radius: 6px 6px 0 0;
-        }
-        [data-theme="dark"] .envelope-icon::before {
-            background-color: #5a4a35;
-        }
-        .envelope-icon::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -80%);
-            width: 24px;
-            height: 24px;
-            background-color: var(--highlight-accent);
-            border-radius: 50%;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-        }
-        .envelope-prompt {
-            font-family: var(--font-handwriting);
-            font-size: 1.2rem;
-            color: var(--text-color);
-        }
+        .envelope-wrapper { display: flex; flex-direction: column; align-items: center; gap: 15px; cursor: pointer; padding: 20px; border-radius: 10px; transition: all 0.3s ease; }
+        .no-touch .envelope-wrapper:hover { transform: scale(1.05); background-color: rgba(var(--accent-color-rgb), 0.05); }
+        .envelope-icon { position: relative; width: 150px; height: 100px; background-color: #f3d9b1; border-radius: 6px; box-shadow: 0 4px 12px var(--shadow-color); }
+        [data-theme="dark"] .envelope-icon { background-color: #6d5b41; }
+        .envelope-icon::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 60%; background-color: #e6c89c; clip-path: polygon(0 0, 100% 0, 50% 100%); border-radius: 6px 6px 0 0; }
+        [data-theme="dark"] .envelope-icon::before { background-color: #5a4a35; }
+        .envelope-icon::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -80%); width: 24px; height: 24px; background-color: var(--highlight-accent); border-radius: 50%; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        .envelope-prompt { font-family: var(--font-handwriting); font-size: 1.2rem; color: var(--text-color); }
 
-        .letter-modal {
-            display: none;
-            position: fixed;
-            z-index: 5000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.8);
-            animation: zoomInModal 0.3s;
-        }
+        .letter-modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); animation: zoomInModal 0.3s; }
         @keyframes zoomInModal { from {opacity:0;} to {opacity:1;} }
-        .letter-modal-content {
-            background-color: #ffffff;
-            color: #2c3e50;
-            margin: 5% auto;
-            padding: 40px 50px;
-            border-radius: 3px;
-            width: 90%;
-            max-width: 650px;
-            position: relative;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            background-image: linear-gradient(to bottom, transparent 39px, #dce4f2 1px);
-            background-size: 100% 40px;
-        }
-        [data-theme="dark"] .letter-modal-content {
-            background-color: #e8e8e8;
-            background-image: linear-gradient(to bottom, transparent 39px, #d0d0d0 1px);
-        }
-
-        .close-letter-modal {
-            color: #333;
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            opacity: 0.7;
-        }
-        .no-touch .close-letter-modal:hover {
-            opacity: 1;
-        }
-
-        #letter-content {
-            font-family: var(--font-handwriting);
-            font-size: 1.5rem;
-            color: #2c3e50;
-        }
-        #letter-content p {
-            font-size: 1.5rem;
-            line-height: 40px;
-            margin: 0;
-            padding: 0;
-            margin-bottom: 40px;
-        }
-
-        .pen-icon {
-            position: absolute;
-            top: 15px;
-            right: 45px;
-            width: 120px;
-            height: 120px;
-            transform: rotate(35deg);
-            opacity: 0.8;
-            pointer-events: none;
-        }
-        .pen-icon svg {
-            width: 100%;
-            height: 100%;
-            fill: #34495e;
-        }
+        .letter-modal-content { background-color: #ffffff; color: #2c3e50; margin: 5% auto; padding: 40px 50px; border-radius: 3px; width: 90%; max-width: 650px; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.5); background-image: linear-gradient(to bottom, transparent 39px, #dce4f2 1px); background-size: 100% 40px; }
+        [data-theme="dark"] .letter-modal-content { background-color: #e8e8e8; background-image: linear-gradient(to bottom, transparent 39px, #d0d0d0 1px); }
+        .close-letter-modal { color: #333; position: absolute; top: 10px; right: 20px; font-size: 32px; font-weight: bold; cursor: pointer; opacity: 0.7; }
+        .no-touch .close-letter-modal:hover { opacity: 1; }
+        #letter-content { font-family: var(--font-handwriting); font-size: 1.5rem; color: #2c3e50; }
+        #letter-content p { font-size: 1.5rem; line-height: 40px; margin: 0; margin-bottom: 40px; }
+        .pen-icon { position: absolute; top: 15px; right: 45px; width: 120px; height: 120px; transform: rotate(35deg); opacity: 0.8; pointer-events: none; }
+        .pen-icon svg { width: 100%; height: 100%; fill: #34495e; }
         
-        .back-cover-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-        }
-        .back-cover-signature {
-            font-family: var(--font-handwriting);
-            font-size: 1.5rem;
-            color: var(--highlight-accent);
-            margin-top: 2em;
-            align-self: flex-end;
-        }
-        .day-counter {
-            margin-top: 1.5em;
-            font-style: italic;
-            opacity: 0.9;
-        }
+        .back-cover-content { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; }
+        .back-cover-signature { font-family: var(--font-handwriting); font-size: 1.5rem; color: var(--highlight-accent); margin-top: 2em; align-self: flex-end; }
+        .day-counter { margin-top: 1.5em; font-style: italic; opacity: 0.9; }
         
-        #stardust-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            border-radius: 6px 0 0 6px;
-        }
-
-        @media (max-width: 800px) {
-            .book { width: 90vw; height: auto; aspect-ratio: 7 / 10; max-height: 85vh; }
-            .page {
-                width: 100%; left: 0; border-radius: 6px;
-                transition: transform 0.8s ease-in-out, opacity 0.6s ease-in-out;
-            }
-            .page.flipped {
-                transform: rotateY(-90deg) scale(1.1);
-                opacity: 0; pointer-events: none;
-            }
-            #cover { top: 0; left: 0; } #page-1 { top: 2px; left: 2px; } #page-2 { top: 4px; left: 4px; } #page-3 { top: 6px; left: 6px; } #back-cover { top: 8px; left: 8px; }
-            .book-spine, .page::after { display: none; }
-            .front-side, .back-side { border-radius: 6px !important; }
-            #prev-page-btn, #next-page-btn { padding: 15px 10px; font-size: 1.5rem; }
-            #prev-page-btn { left: 1vw; } #next-page-btn { right: 1vw; }
-            .slider-nav { right: 10px; }
-            #stardust-canvas { border-radius: 6px !important; }
-        }
+        #stardust-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -397,30 +217,45 @@
     <div class="book-container">
         <button id="prev-page-btn" title="Previous Page">❮</button>
         <div id="book" class="book">
-            <div class="book-spine"></div>
 
-            <!-- Cover -->
+            <!-- Page 1: Cover -->
             <div id="cover" class="page">
-                <div class="page-content front-side content-centered"><div class="page-inner-content content-centered"><h1 style="font-family: var(--font-heading); font-size: clamp(2rem, 10vw, 3rem); text-shadow: 2px 2px 5px rgba(0,0,0,0.4);">Mỉng Quày & Xìng Híng</h1><p style="margin-top: 1em;">A Story of Friendship</p></div></div>
-                <div class="page-content back-side content-centered"><div class="page-inner-content content-centered"><h2 style="font-family: var(--font-handwriting); color: var(--highlight-accent); font-size: clamp(2rem, 10vw, 2.5rem);">For Xìng Híng,</h2><p style="font-style: italic; margin-top: 1em;">Because some stories are too good not to be written down. Here's to ours.</p></div></div>
-            </div>
-            
-            <!-- Page 1 & 2 -->
-            <div id="page-1" class="page">
-                <div class="page-content front-side content-top"><div class="page-inner-content content-top"><h2>Our Story So Far</h2><div class="roadmap-list"><div class="roadmap-item"><h4>2022: We Met</h4><p>Grade 10. The start of it all.</p></div><div class="roadmap-item"><h4>2022-2024: The High School Years</h4><p>Projects, exams, and endless laughter. We made it through!</p></div><div class="roadmap-item"><h4>Today: Graduation!</h4><p>We finished one big chapter.</p></div><div class="roadmap-item"><h4>The Future: To Be Written...</h4><p>New adventures are waiting for us.</p></div></div></div></div>
-                <div class="page-content back-side content-centered"><div class="page-inner-content content-centered"><h2>Our Anthem</h2><div class="single-song-container"><h4>The "We Made It" Song</h4><p>This one will always remind me of all the late-night study sessions and celebrating our wins, big or small.</p><audio controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio></div></div></div>
+                <div class="page-content content-centered"><div class="page-inner-content content-centered"><h1 style="font-family: var(--font-heading); font-size: clamp(2rem, 10vw, 3.5rem); text-shadow: 2px 2px 5px rgba(0,0,0,0.4);">Mỉng Quày & Xìng Híng</h1><p style="margin-top: 1em; font-size: clamp(1rem, 4vw, 1.2rem);">A Story of Friendship</p></div></div>
             </div>
 
-            <!-- Page 3 & 4 -->
+            <!-- Page 2: Dedication -->
             <div id="page-2" class="page">
-                <div class="page-content front-side content-centered"><div class="page-inner-content content-centered"><h2>The Next Chapter</h2><p style="font-style: italic; margin-bottom: 20px;">The story isn't over. Here's to what we'll do next!</p><ul class="future-pact-list"><li>Finish high school (Done!) ✅</li><li>Go on an epic road trip.</li><li>Learn a new skill together.</li><li>Always be there for each other.</li><li>Stay legends for life.</li></ul><p style="margin-top: 30px; font-family:var(--font-handwriting); font-size: 1.2rem; color: var(--highlight-accent)">The Pact is Sealed!</p></div></div>
-                <div class="page-content back-side content-top"><div class="page-inner-content content-top"><h2>More Memories</h2><p style="text-align:center; flex-shrink: 0; margin-bottom: 10px;">A few more snapshots from our journey.</p><div id="vertical-slider" class="vertical-slider-container"><div class="v-slide"><img src="https://via.placeholder.com/400x300/e83e8c/ffffff?text=Memory+1" alt="Memory 1"><p class="v-slide-caption">That time we tried to bake and nearly burnt the kitchen.</p></div><div class="v-slide"><img src="https://via.placeholder.com/400x300/fd7e14/ffffff?text=Memory+2" alt="Memory 2"><p class="v-slide-caption">Winning the science fair with a volcano that actually worked.</p></div><div class="v-slide"><img src="https://via.placeholder.com/400x300/20c997/ffffff?text=Memory+3" alt="Memory 3"><p class="v-slide-caption">Chilling at the park, planning world domination (or just what to have for lunch).</p></div><div class="v-slide"><img src="https://via.placeholder.com/400x300/6f42c1/ffffff?text=Memory+4" alt="Memory 4"><p class="v-slide-caption">Our first attempt at playing guitar together.</p></div><div class="slider-nav"><button id="slide-up-btn" title="Previous Image">▲</button><button id="slide-down-btn" title="Next Image">▼</button></div><div id="slide-counter">1 / 4</div></div></div></div>
+                 <div class="page-content content-centered"><div class="page-inner-content content-centered"><h2 style="font-family: var(--font-handwriting); color: var(--highlight-accent); font-size: clamp(2rem, 10vw, 2.8rem);">For Xìng Híng,</h2><p style="font-style: italic; margin-top: 1em;">Because some stories are too good not to be written down. Here's to ours.</p></div></div>
             </div>
             
-            <!-- Page 5 & 6 -->
+            <!-- Page 3: Story So Far -->
             <div id="page-3" class="page">
-                 <div class="page-content front-side content-centered"><div class="page-inner-content content-centered"><h2 style="font-family: var(--font-handwriting); color: var(--highlight-accent);">One last thing...</h2><p style="font-style: italic;">(Turn the page)</p></div></div>
-                 <div class="page-content back-side content-centered">
+                <div class="page-content content-top"><div class="page-inner-content content-top"><h2>Our Story So Far</h2><div class="roadmap-list"><div class="roadmap-item"><h4>2022: We Met</h4><p>Grade 10. The start of it all.</p></div><div class="roadmap-item"><h4>2022-2024: The High School Years</h4><p>Projects, exams, and endless laughter. We made it through!</p></div><div class="roadmap-item"><h4>Today: Graduation!</h4><p>We finished one big chapter.</p></div><div class="roadmap-item"><h4>The Future: To Be Written...</h4><p>New adventures are waiting for us.</p></div></div></div></div>
+            </div>
+            
+            <!-- Page 4: Anthem -->
+            <div id="page-4" class="page">
+                <div class="page-content content-centered"><div class="page-inner-content content-centered"><h2>Our Anthem</h2><div class="single-song-container"><h4>The "We Made It" Song</h4><p>This one will always remind me of all the late-night study sessions and celebrating our wins, big or small.</p><audio controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio></div></div></div>
+            </div>
+
+            <!-- Page 5: Next Chapter -->
+            <div id="page-5" class="page">
+                <div class="page-content content-centered"><div class="page-inner-content content-centered"><h2>The Next Chapter</h2><p style="font-style: italic; margin-bottom: 20px;">The story isn't over. Here's to what we'll do next!</p><ul class="future-pact-list"><li>Finish high school (Done!) ✅</li><li>Go on an epic road trip.</li><li>Learn a new skill together.</li><li>Always be there for each other.</li><li>Stay legends for life.</li></ul><p style="margin-top: 30px; font-family:var(--font-handwriting); font-size: 1.3rem; color: var(--highlight-accent)">The Pact is Sealed!</p></div></div>
+            </div>
+            
+            <!-- Page 6: More Memories -->
+            <div id="page-6" class="page">
+                <div class="page-content content-top"><div class="page-inner-content content-top"><h2>More Memories</h2><p style="text-align:center; flex-shrink: 0; margin-bottom: 10px;">A few more snapshots from our journey.</p><div id="vertical-slider" class="vertical-slider-container"><div class="v-slide"><img src="https://via.placeholder.com/400x300/e83e8c/ffffff?text=Memory+1" alt="Memory 1"><p class="v-slide-caption">That time we tried to bake and nearly burnt the kitchen.</p></div><div class="v-slide"><img src="https://via.placeholder.com/400x300/fd7e14/ffffff?text=Memory+2" alt="Memory 2"><p class="v-slide-caption">Winning the science fair with a volcano that actually worked.</p></div><div class="v-slide"><img src="https://via.placeholder.com/400x300/20c997/ffffff?text=Memory+3" alt="Memory 3"><p class="v-slide-caption">Chilling at the park, planning world domination (or just what to have for lunch).</p></div><div class="v-slide"><img src="https://via.placeholder.com/400x300/6f42c1/ffffff?text=Memory+4" alt="Memory 4"><p class="v-slide-caption">Our first attempt at playing guitar together.</p></div><div class="slider-nav"><button id="slide-up-btn" title="Previous Image">▲</button><button id="slide-down-btn" title="Next Image">▼</button></div><div id="slide-counter">1 / 4</div></div></div></div>
+            </div>
+            
+            <!-- Page 7: Prompt for Letter -->
+             <div id="page-7" class="page">
+                 <div class="page-content content-centered"><div class="page-inner-content content-centered"><h2 style="font-family: var(--font-handwriting); color: var(--highlight-accent);">One last thing...</h2><p style="font-style: italic;">(Turn the page)</p></div></div>
+            </div>
+
+            <!-- Page 8: Envelope -->
+            <div id="page-8" class="page">
+                 <div class="page-content content-centered">
                     <div class="page-inner-content content-centered">
                         <div class="envelope-wrapper" id="open-letter-popup" title="Click to open">
                             <div class="envelope-icon"></div>
@@ -430,20 +265,20 @@
                 </div>
             </div>
 
-            <!-- Back Cover (Now the final page) -->
-            <div id="back-cover" class="page">
-                <!-- This is the inner-facing last page -->
-                <div class="page-content front-side">
+            <!-- Page 9: Inner Back Cover -->
+            <div id="page-9" class="page">
+                <div class="page-content">
                     <div class="page-inner-content back-cover-content">
-                        <p style="text-align: center;">"Hmm... It's the end of this storybook but the beginning of our new journey ahead."</p>
+                        <p>"Hmm... It's the end of this storybook but the beginning of our new journey ahead."</p>
                         <p class="day-counter">It has been <span id="day-counter">0</span> days since this storybook first opened.</p>
                         <p class="back-cover-signature">Minzooy</p>
                     </div>
                 </div>
-                <!-- This is the actual back of the book, with the canvas animation -->
-                <div class="page-content back-side">
-                    <canvas id="stardust-canvas"></canvas>
-                </div>
+            </div>
+
+            <!-- Page 10: Back Cover -->
+            <div id="back-cover" class="page">
+                <canvas id="stardust-canvas"></canvas>
             </div>
 
         </div>
@@ -469,12 +304,10 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const preloader = document.getElementById('preloader');
-        setTimeout(() => {
-            preloader.classList.add('loaded');
-        }, 1500);
+        setTimeout(() => { preloader.classList.add('loaded'); }, 1500);
 
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if(isTouchDevice) document.body.classList.add('touch-device');
+        if (isTouchDevice) document.body.classList.add('touch-device');
         else document.body.classList.add('no-touch');
 
         const prevBtn = document.getElementById('prev-page-btn');
@@ -486,30 +319,41 @@
         let hasFinalSongPlayed = false;
         let stardustInitialized = false;
 
-        const updateButtons = () => {
-            prevBtn.style.display = currentPage === 0 ? 'none' : 'block';
-            nextBtn.style.display = currentPage >= pages.length ? 'none' : 'block';
-        };
-        
         const playSound = () => { pageTurnSound.currentTime = 0; pageTurnSound.play().catch(() => {}); };
 
+        const updateButtons = () => {
+            prevBtn.style.display = currentPage === 0 ? 'none' : 'block';
+            nextBtn.style.display = currentPage === pages.length - 1 ? 'none' : 'block';
+        };
+
+        const showPage = (pageIndex) => {
+            pages.forEach((page, index) => {
+                page.classList.remove('active', 'exiting');
+                if (index === pageIndex) {
+                    page.classList.add('active');
+                }
+            });
+            currentPage = pageIndex;
+            updateButtons();
+        };
+
         const goNextPage = () => {
-            if (currentPage < pages.length) {
-                const justFlippedPage = pages[currentPage];
-                justFlippedPage.classList.add('flipped');
-                currentPage++; 
-                updateButtons(); 
+            if (currentPage < pages.length - 1) {
+                const currentPageEl = pages[currentPage];
+                currentPageEl.classList.add('exiting');
+                
+                showPage(currentPage + 1);
                 playSound();
 
-                // Play the final song when the last content page is flipped
-                if (!hasFinalSongPlayed && justFlippedPage.id === 'page-3') {
+                // Play song when turning from the envelope page
+                if (!hasFinalSongPlayed && currentPageEl.id === 'page-8') {
                     finalSong.currentTime = 0;
                     finalSong.play().catch(e => console.log("Autoplay was prevented by the browser."));
                     hasFinalSongPlayed = true;
                 }
                 
-                // Initialize the stardust effect when the back cover is visible
-                if (!stardustInitialized && currentPage > 0 && pages[currentPage - 1].id === 'back-cover') {
+                // Initialize stardust on the very last page
+                if (!stardustInitialized && pages[currentPage].id === 'back-cover') {
                     initStardustEffect();
                     stardustInitialized = true;
                 }
@@ -518,9 +362,9 @@
 
         const goPrevPage = () => {
             if (currentPage > 0) {
-                currentPage--;
-                pages[currentPage].classList.remove('flipped');
-                updateButtons(); 
+                const currentPageEl = pages[currentPage];
+                // No exiting animation for previous to feel more natural
+                showPage(currentPage - 1);
                 playSound();
             }
         };
@@ -550,7 +394,6 @@
             if(closeLetterModalBtn) {
                 closeLetterModalBtn.addEventListener('click', () => letterModal.style.display = "none");
             }
-            
             window.addEventListener('click', (e) => {
                 if (e.target == letterModal) letterModal.style.display = "none";
             });
@@ -640,10 +483,8 @@
                     let p = particles[i];
                     p.x += p.speedX;
                     p.y += p.speedY;
-                    
                     if(p.x > canvas.width || p.x < 0) p.speedX *= -1;
                     if(p.y > canvas.height || p.y < 0) p.speedY *= -1;
-                    
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fillStyle = p.color;
@@ -660,7 +501,7 @@
 
         pages.forEach(page => page.addEventListener('click', e => {
             if (e.target.closest('a, button, audio, .envelope-wrapper, .slider-nav')) return;
-            if(e.target.closest('.front-side') && !page.classList.contains('flipped')) goNextPage();
+            goNextPage();
         }));
 
         document.addEventListener('keydown', (e) => {
@@ -673,7 +514,7 @@
             if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPage();
         });
 
-        updateButtons();
+        showPage(0);
         setupTheme();
         setupInteractiveElements();
         setupAmbientEffects();
