@@ -153,7 +153,7 @@
         .no-touch .page:not(.flipped) .front-side::before { content: ''; position: absolute; top: 0; right: 0; width: 50px; height: 50px; background: radial-gradient(circle at top right, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%); opacity: 0; transition: opacity 0.3s; cursor: pointer; }
         .no-touch .page:not(.flipped):hover .front-side::before { opacity: 1; }
         
-        /* Z-Index Stacking Logic */
+        /* Corrected Z-Index Stacking Logic */
         #cover { z-index: 20; }
         #page-1 { z-index: 19; }
         #page-2 { z-index: 18; }
@@ -362,48 +362,25 @@
             pointer-events: none;
             border-radius: 6px 0 0 6px;
         }
-        
-        /* === MOBILE VIEW FIXES START === */
+
         @media (max-width: 800px) {
-            .book { 
-                width: 90vw; 
-                height: auto; 
-                aspect-ratio: 7 / 10; 
-                max-height: 85vh; 
-                perspective: none; 
-            }
+            .book { width: 90vw; height: auto; aspect-ratio: 7 / 10; max-height: 85vh; }
             .page {
-                width: 100%; 
-                height: 100%;
-                left: 0;
-                top: 0;
-                position: absolute; /* Pages must be absolute to stack */
-                transform: none !important; /* Override all desktop transforms */
+                width: 100%; left: 0; border-radius: 6px;
+                transition: transform 0.8s ease-in-out, opacity 0.6s ease-in-out;
             }
-            .page-content {
-                position: absolute;
-                top: 0; left: 0; width: 100%; height: 100%;
-                border-radius: 6px;
-                backface-visibility: hidden; /* Important for performance */
-                transform: none !important; /* Override all desktop transforms */
-                transition: opacity 0.6s ease-in-out;
-                opacity: 0; /* Hide all pages by default */
-                pointer-events: none; /* Disable interaction when hidden */
-                z-index: 1; /* Default stack level */
+            .page.flipped {
+                transform: rotateY(-90deg) scale(1.1);
+                opacity: 0; pointer-events: none;
             }
-            .page-content.mobile-visible {
-                opacity: 1; /* Show the active page */
-                pointer-events: auto;
-                z-index: 2; /* Bring active page to the front */
-            }
-            .book-spine, .page::after, .no-touch .page:not(.flipped) .front-side::before {
-                display: none;
-            }
+            #cover { top: 0; left: 0; } #page-1 { top: 2px; left: 2px; } #page-2 { top: 4px; left: 4px; } #page-3 { top: 6px; left: 6px; } #back-cover { top: 8px; left: 8px; }
+            .book-spine, .page::after { display: none; }
+            .front-side, .back-side { border-radius: 6px !important; }
             #prev-page-btn, #next-page-btn { padding: 15px 10px; font-size: 1.5rem; }
             #prev-page-btn { left: 1vw; } #next-page-btn { right: 1vw; }
+            .slider-nav { right: 10px; }
             #stardust-canvas { border-radius: 6px !important; }
         }
-        /* === MOBILE VIEW FIXES END === */
     </style>
 </head>
 <body>
@@ -453,8 +430,9 @@
                 </div>
             </div>
 
-            <!-- Back Cover (Final page) -->
+            <!-- Back Cover (Now the final page) -->
             <div id="back-cover" class="page">
+                <!-- This is the inner-facing last page -->
                 <div class="page-content front-side">
                     <div class="page-inner-content back-cover-content">
                         <p style="text-align: center;">"Hmm... It's the end of this storybook but the beginning of our new journey ahead."</p>
@@ -462,6 +440,7 @@
                         <p class="back-cover-signature">Minzooy</p>
                     </div>
                 </div>
+                <!-- This is the actual back of the book, with the canvas animation -->
                 <div class="page-content back-side">
                     <canvas id="stardust-canvas"></canvas>
                 </div>
@@ -484,123 +463,68 @@
         </div>
     </div>
 
-    <audio id="page-turn-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-page-turn-1002.mp3" preload="auto"></audio>
-    <audio id="final-song" src="https://cdn.pixabay.com/download/audio/2022/02/07/audio_d042da9f51.mp3" preload="auto"></audio>
+    <audio id="page-turn-sound" src="page_flip.mp3" preload="auto"></audio>
+    <audio id="final-song" src="see_u_again.mp3" preload="auto"></audio>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const preloader = document.getElementById('preloader');
-        setTimeout(() => { preloader.classList.add('loaded'); }, 1500);
+        setTimeout(() => {
+            preloader.classList.add('loaded');
+        }, 1500);
 
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         if(isTouchDevice) document.body.classList.add('touch-device');
         else document.body.classList.add('no-touch');
-        
-        const isMobileView = window.innerWidth <= 800;
 
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
-        const bookPages = Array.from(document.querySelectorAll('.page'));
+        const pages = Array.from(document.querySelectorAll('.page'));
         const pageTurnSound = document.getElementById('page-turn-sound');
         const finalSong = document.getElementById('final-song');
-        
+        let currentPage = 0;
         let hasFinalSongPlayed = false;
         let stardustInitialized = false;
 
+        const updateButtons = () => {
+            prevBtn.style.display = currentPage === 0 ? 'none' : 'block';
+            nextBtn.style.display = currentPage >= pages.length ? 'none' : 'block';
+        };
+        
         const playSound = () => { pageTurnSound.currentTime = 0; pageTurnSound.play().catch(() => {}); };
 
-        // --- Desktop-Specific Logic ---
-        let desktopCurrentPage = 0;
-
-        const updateDesktopButtons = () => {
-            prevBtn.style.display = desktopCurrentPage === 0 ? 'none' : 'block';
-            nextBtn.style.display = desktopCurrentPage >= bookPages.length ? 'none' : 'block';
-        };
-
-        const goNextPageDesktop = () => {
-            if (desktopCurrentPage < bookPages.length) {
-                const justFlippedPage = bookPages[desktopCurrentPage];
+        const goNextPage = () => {
+            if (currentPage < pages.length) {
+                const justFlippedPage = pages[currentPage];
                 justFlippedPage.classList.add('flipped');
-                desktopCurrentPage++; 
-                updateDesktopButtons(); 
+                currentPage++; 
+                updateButtons(); 
                 playSound();
 
+                // Play the final song when the last content page is flipped
                 if (!hasFinalSongPlayed && justFlippedPage.id === 'page-3') {
                     finalSong.currentTime = 0;
-                    finalSong.play().catch(e => console.log("Autoplay prevented."));
+                    finalSong.play().catch(e => console.log("Autoplay was prevented by the browser."));
                     hasFinalSongPlayed = true;
                 }
                 
-                if (!stardustInitialized && desktopCurrentPage > 0 && bookPages[desktopCurrentPage - 1].id === 'back-cover') {
+                // Initialize the stardust effect when the back cover is visible
+                if (!stardustInitialized && currentPage > 0 && pages[currentPage - 1].id === 'back-cover') {
                     initStardustEffect();
+                    stardustInitialized = true;
                 }
             }
         };
 
-        const goPrevPageDesktop = () => {
-            if (desktopCurrentPage > 0) {
-                desktopCurrentPage--;
-                bookPages[desktopCurrentPage].classList.remove('flipped');
-                updateDesktopButtons(); 
+        const goPrevPage = () => {
+            if (currentPage > 0) {
+                currentPage--;
+                pages[currentPage].classList.remove('flipped');
+                updateButtons(); 
                 playSound();
             }
         };
         
-        // --- Mobile-Specific Logic ---
-        const mobilePageSurfaces = [];
-        bookPages.forEach(p => {
-            mobilePageSurfaces.push(p.querySelector('.front-side'));
-            // Only add back sides that have actual content to the mobile sequence
-            const backSide = p.querySelector('.back-side');
-            if (backSide && backSide.querySelector('.page-inner-content')?.innerHTML.trim() !== '') {
-                 mobilePageSurfaces.push(backSide);
-            }
-        });
-
-        let mobileCurrentPageIndex = 0;
-
-        const updateMobileView = () => {
-            mobilePageSurfaces.forEach((surface, index) => {
-                if (index === mobileCurrentPageIndex) {
-                    surface.classList.add('mobile-visible');
-                } else {
-                    surface.classList.remove('mobile-visible');
-                }
-            });
-
-            prevBtn.style.display = mobileCurrentPageIndex === 0 ? 'none' : 'block';
-            nextBtn.style.display = mobileCurrentPageIndex >= mobilePageSurfaces.length - 1 ? 'none' : 'block';
-            
-            const currentPage = mobilePageSurfaces[mobileCurrentPageIndex];
-            // Check if the final message page is visible
-            if (!hasFinalSongPlayed && currentPage.parentElement.id === 'back-cover' && currentPage.classList.contains('front-side')) {
-                 finalSong.currentTime = 0;
-                 finalSong.play().catch(e => console.log("Autoplay prevented."));
-                 hasFinalSongPlayed = true;
-            }
-            // Check if the stardust canvas page is visible
-            if (currentPage.parentElement.id === 'back-cover' && currentPage.classList.contains('back-side')) {
-                initStardustEffect();
-            }
-        };
-
-        const goNextPageMobile = () => {
-            if (mobileCurrentPageIndex < mobilePageSurfaces.length - 1) {
-                mobileCurrentPageIndex++;
-                updateMobileView();
-                playSound();
-            }
-        };
-
-        const goPrevPageMobile = () => {
-            if (mobileCurrentPageIndex > 0) {
-                mobileCurrentPageIndex--;
-                updateMobileView();
-                playSound();
-            }
-        };
-        
-        // --- Generic Setup ---
         const setupTheme = () => {
             const themeToggle = document.getElementById('theme-toggle');
             const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙'; };
@@ -613,13 +537,25 @@
         };
 
         const setupInteractiveElements = () => {
+            // Letter Modal
             const letterModal = document.getElementById("letterModal");
             const openLetterBtn = document.getElementById("open-letter-popup");
             const closeLetterModalBtn = document.querySelector(".close-letter-modal");
-            if(openLetterBtn) openLetterBtn.addEventListener('click', (e) => { e.stopPropagation(); letterModal.style.display = "block"; });
-            if(closeLetterModalBtn) closeLetterModalBtn.addEventListener('click', () => letterModal.style.display = "none");
-            window.addEventListener('click', (e) => { if (e.target == letterModal) letterModal.style.display = "none"; });
+            if(openLetterBtn) {
+                openLetterBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    letterModal.style.display = "block";
+                });
+            }
+            if(closeLetterModalBtn) {
+                closeLetterModalBtn.addEventListener('click', () => letterModal.style.display = "none");
+            }
+            
+            window.addEventListener('click', (e) => {
+                if (e.target == letterModal) letterModal.style.display = "none";
+            });
 
+            // Vertical Slider
             const slider = document.getElementById('vertical-slider');
             if(slider) {
                 const slides = slider.querySelectorAll('.v-slide');
@@ -667,8 +603,7 @@
         
         const initStardustEffect = () => {
             const canvas = document.getElementById('stardust-canvas');
-            if (!canvas || stardustInitialized) return;
-            stardustInitialized = true;
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             let particles = [];
             const numParticles = 150;
@@ -679,9 +614,11 @@
                 particles = [];
                  for(let i=0; i<numParticles; i++) {
                     particles.push({
-                        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
                         size: Math.random() * 2 + 0.5,
-                        speedX: (Math.random() * 1 - 0.5) * 0.5, speedY: (Math.random() * 1 - 0.5) * 0.5,
+                        speedX: (Math.random() * 1 - 0.5) * 0.5,
+                        speedY: (Math.random() * 1 - 0.5) * 0.5,
                         color: `rgba(226, 232, 240, ${Math.random() * 0.5 + 0.3})`
                     });
                 }
@@ -689,54 +626,58 @@
             
             const resizeObserver = new ResizeObserver(resizeCanvas);
             resizeObserver.observe(canvas.parentElement);
-            
+            resizeCanvas();
+
             let animationFrameId;
             function animate() {
-                if(!canvas.parentElement) { resizeObserver.disconnect(); cancelAnimationFrame(animationFrameId); return; }
+                if(!canvas.parentElement) {
+                    resizeObserver.disconnect();
+                    cancelAnimationFrame(animationFrameId);
+                    return;
+                }
                 ctx.clearRect(0,0, canvas.width, canvas.height);
-                for(let p of particles) {
-                    p.x += p.speedX; p.y += p.speedY;
+                for(let i=0; i<particles.length; i++) {
+                    let p = particles[i];
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    
                     if(p.x > canvas.width || p.x < 0) p.speedX *= -1;
                     if(p.y > canvas.height || p.y < 0) p.speedY *= -1;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color; ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
                 }
                 animationFrameId = requestAnimationFrame(animate);
             }
             animate();
         };
 
-        // --- Initial Setup Execution ---
+        // --- Initial Setup ---
+        prevBtn.addEventListener('click', goPrevPage);
+        nextBtn.addEventListener('click', goNextPage);
+
+        pages.forEach(page => page.addEventListener('click', e => {
+            if (e.target.closest('a, button, audio, .envelope-wrapper, .slider-nav')) return;
+            if(e.target.closest('.front-side') && !page.classList.contains('flipped')) goNextPage();
+        }));
+
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+             if (document.getElementById('letterModal').style.display === 'block') {
+                if (e.key === "Escape") document.getElementById('letterModal').style.display = "none";
+                return;
+            }
+            if (e.key === 'ArrowRight' || e.key === ' ') goNextPage();
+            if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPage();
+        });
+
+        updateButtons();
         setupTheme();
         setupInteractiveElements();
         setupAmbientEffects();
         setupDayCounter();
-
-        if (isMobileView) {
-            prevBtn.addEventListener('click', goPrevPageMobile);
-            nextBtn.addEventListener('click', goNextPageMobile);
-            document.addEventListener('keydown', (e) => {
-                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-                if (document.getElementById('letterModal').style.display === 'block') { if (e.key === "Escape") document.getElementById('letterModal').style.display = "none"; return; }
-                if (e.key === 'ArrowRight' || e.key === ' ') goNextPageMobile();
-                if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPageMobile();
-            });
-            updateMobileView();
-        } else {
-            prevBtn.addEventListener('click', goPrevPageDesktop);
-            nextBtn.addEventListener('click', goPrevPageDesktop);
-            bookPages.forEach(page => page.addEventListener('click', e => {
-                if (e.target.closest('a, button, audio, .envelope-wrapper, .slider-nav')) return;
-                if(e.target.closest('.front-side') && !page.classList.contains('flipped')) goNextPageDesktop();
-            }));
-            document.addEventListener('keydown', (e) => {
-                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-                if (document.getElementById('letterModal').style.display === 'block') { if (e.key === "Escape") document.getElementById('letterModal').style.display = "none"; return; }
-                if (e.key === 'ArrowRight' || e.key === ' ') goNextPageDesktop();
-                if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPageDesktop();
-            });
-            updateDesktopButtons();
-        }
     });
     </script>
 </body>
