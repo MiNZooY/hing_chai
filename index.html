@@ -153,7 +153,7 @@
         .no-touch .page:not(.flipped) .front-side::before { content: ''; position: absolute; top: 0; right: 0; width: 50px; height: 50px; background: radial-gradient(circle at top right, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%); opacity: 0; transition: opacity 0.3s; cursor: pointer; }
         .no-touch .page:not(.flipped):hover .front-side::before { opacity: 1; }
         
-        /* Corrected Z-Index Stacking Logic */
+        /* Z-Index Stacking Logic */
         #cover { z-index: 20; }
         #page-1 { z-index: 19; }
         #page-2 { z-index: 18; }
@@ -362,18 +362,41 @@
             pointer-events: none;
             border-radius: 6px 0 0 6px;
         }
-
+        
+        /* === MOBILE VIEW FIXES START === */
         @media (max-width: 800px) {
-            .book { width: 90vw; height: auto; aspect-ratio: 7 / 10; max-height: 85vh; }
+            .book { 
+                width: 90vw; 
+                height: auto; 
+                aspect-ratio: 7 / 10; 
+                max-height: 85vh; 
+                perspective: none; /* Use a simpler 2D-like flip for mobile */
+            }
             .page {
-                width: 100%; left: 0; border-radius: 6px;
-                transition: transform 0.8s ease-in-out, opacity 0.6s ease-in-out;
+                width: 100%; 
+                left: 0;
+                top: 0 !important; /* Override desktop stacking */
+                left: 0 !important;
+                border-radius: 6px;
+                transition: transform 0.8s ease-in-out, opacity 0.4s ease-in-out;
+                /* By default, pages are hidden on mobile until activated by JS */
+                opacity: 0;
+                pointer-events: none;
+                z-index: 40;
             }
+            .page.mobile-active {
+                opacity: 1;
+                pointer-events: auto;
+                z-index: 50; /* Bring the current page to the front */
+            }
+
             .page.flipped {
-                transform: rotateY(-90deg) scale(1.1);
-                opacity: 0; pointer-events: none;
+                transform: rotateY(-180deg);
+                /* Flipped pages remain visible on mobile */
+                opacity: 1;
+                pointer-events: auto;
             }
-            #cover { top: 0; left: 0; } #page-1 { top: 2px; left: 2px; } #page-2 { top: 4px; left: 4px; } #page-3 { top: 6px; left: 6px; } #back-cover { top: 8px; left: 8px; }
+
             .book-spine, .page::after { display: none; }
             .front-side, .back-side { border-radius: 6px !important; }
             #prev-page-btn, #next-page-btn { padding: 15px 10px; font-size: 1.5rem; }
@@ -381,6 +404,7 @@
             .slider-nav { right: 10px; }
             #stardust-canvas { border-radius: 6px !important; }
         }
+        /* === MOBILE VIEW FIXES END === */
     </style>
 </head>
 <body>
@@ -430,9 +454,8 @@
                 </div>
             </div>
 
-            <!-- Back Cover (Now the final page) -->
+            <!-- Back Cover (Final page) -->
             <div id="back-cover" class="page">
-                <!-- This is the inner-facing last page -->
                 <div class="page-content front-side">
                     <div class="page-inner-content back-cover-content">
                         <p style="text-align: center;">"Hmm... It's the end of this storybook but the beginning of our new journey ahead."</p>
@@ -440,7 +463,6 @@
                         <p class="back-cover-signature">Minzooy</p>
                     </div>
                 </div>
-                <!-- This is the actual back of the book, with the canvas animation -->
                 <div class="page-content back-side">
                     <canvas id="stardust-canvas"></canvas>
                 </div>
@@ -463,68 +485,130 @@
         </div>
     </div>
 
-    <audio id="page-turn-sound" src="page_flip.mp3" preload="auto"></audio>
-    <audio id="final-song" src="see_u_again.mp3" preload="auto"></audio>
+    <audio id="page-turn-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-page-turn-1002.mp3" preload="auto"></audio>
+    <audio id="final-song" src="https://cdn.pixabay.com/download/audio/2022/02/07/audio_d042da9f51.mp3" preload="auto"></audio>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const preloader = document.getElementById('preloader');
-        setTimeout(() => {
-            preloader.classList.add('loaded');
-        }, 1500);
+        setTimeout(() => { preloader.classList.add('loaded'); }, 1500);
 
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         if(isTouchDevice) document.body.classList.add('touch-device');
         else document.body.classList.add('no-touch');
+        
+        const isMobileView = window.innerWidth <= 800;
 
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
         const pages = Array.from(document.querySelectorAll('.page'));
         const pageTurnSound = document.getElementById('page-turn-sound');
         const finalSong = document.getElementById('final-song');
-        let currentPage = 0;
+        
         let hasFinalSongPlayed = false;
         let stardustInitialized = false;
 
-        const updateButtons = () => {
-            prevBtn.style.display = currentPage === 0 ? 'none' : 'block';
-            nextBtn.style.display = currentPage >= pages.length ? 'none' : 'block';
-        };
-        
+        // --- Shared Functions ---
         const playSound = () => { pageTurnSound.currentTime = 0; pageTurnSound.play().catch(() => {}); };
 
-        const goNextPage = () => {
-            if (currentPage < pages.length) {
-                const justFlippedPage = pages[currentPage];
+        // --- Desktop-Specific Logic ---
+        let desktopCurrentPage = 0;
+
+        const updateDesktopButtons = () => {
+            prevBtn.style.display = desktopCurrentPage === 0 ? 'none' : 'block';
+            nextBtn.style.display = desktopCurrentPage >= pages.length ? 'none' : 'block';
+        };
+
+        const goNextPageDesktop = () => {
+            if (desktopCurrentPage < pages.length) {
+                const justFlippedPage = pages[desktopCurrentPage];
                 justFlippedPage.classList.add('flipped');
-                currentPage++; 
-                updateButtons(); 
+                desktopCurrentPage++; 
+                updateDesktopButtons(); 
                 playSound();
 
-                // Play the final song when the last content page is flipped
                 if (!hasFinalSongPlayed && justFlippedPage.id === 'page-3') {
                     finalSong.currentTime = 0;
-                    finalSong.play().catch(e => console.log("Autoplay was prevented by the browser."));
+                    finalSong.play().catch(e => console.log("Autoplay prevented."));
                     hasFinalSongPlayed = true;
                 }
                 
-                // Initialize the stardust effect when the back cover is visible
-                if (!stardustInitialized && currentPage > 0 && pages[currentPage - 1].id === 'back-cover') {
+                if (!stardustInitialized && desktopCurrentPage > 0 && pages[desktopCurrentPage - 1].id === 'back-cover') {
                     initStardustEffect();
                     stardustInitialized = true;
                 }
             }
         };
 
-        const goPrevPage = () => {
-            if (currentPage > 0) {
-                currentPage--;
-                pages[currentPage].classList.remove('flipped');
-                updateButtons(); 
+        const goPrevPageDesktop = () => {
+            if (desktopCurrentPage > 0) {
+                desktopCurrentPage--;
+                pages[desktopCurrentPage].classList.remove('flipped');
+                updateDesktopButtons(); 
                 playSound();
             }
         };
         
+        // --- Mobile-Specific Logic ---
+        let mobileVisiblePage = 1; // Tracks visible content page number (1 to 10)
+        const totalMobilePages = pages.length * 2;
+
+        const updateMobileButtons = () => {
+            prevBtn.style.display = mobileVisiblePage <= 1 ? 'none' : 'block';
+            nextBtn.style.display = mobileVisiblePage >= totalMobilePages ? 'none' : 'block';
+        };
+        
+        const updateMobileView = () => {
+            const paperIndex = Math.floor((mobileVisiblePage - 1) / 2);
+            const showBack = (mobileVisiblePage - 1) % 2 === 1;
+
+            pages.forEach((page, index) => {
+                page.classList.remove('mobile-active');
+                if (index !== paperIndex) {
+                    page.classList.remove('flipped');
+                }
+            });
+
+            if (paperIndex >= 0 && paperIndex < pages.length) {
+                const activePaper = pages[paperIndex];
+                activePaper.classList.add('mobile-active');
+                if (showBack) {
+                    activePaper.classList.add('flipped');
+                } else {
+                    activePaper.classList.remove('flipped');
+                }
+
+                if (!hasFinalSongPlayed && activePaper.id === 'back-cover' && !showBack) {
+                    finalSong.currentTime = 0;
+                    finalSong.play().catch(e => console.log("Autoplay prevented."));
+                    hasFinalSongPlayed = true;
+                }
+
+                if (!stardustInitialized && activePaper.id === 'back-cover' && showBack) {
+                    initStardustEffect();
+                    stardustInitialized = true;
+                }
+            }
+            updateMobileButtons();
+        };
+
+        const goNextPageMobile = () => {
+            if (mobileVisiblePage < totalMobilePages) {
+                mobileVisiblePage++;
+                updateMobileView();
+                playSound();
+            }
+        };
+
+        const goPrevPageMobile = () => {
+            if (mobileVisiblePage > 1) {
+                mobileVisiblePage--;
+                updateMobileView();
+                playSound();
+            }
+        };
+
+        // --- Generic Setup ---
         const setupTheme = () => {
             const themeToggle = document.getElementById('theme-toggle');
             const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙'; };
@@ -537,25 +621,13 @@
         };
 
         const setupInteractiveElements = () => {
-            // Letter Modal
             const letterModal = document.getElementById("letterModal");
             const openLetterBtn = document.getElementById("open-letter-popup");
             const closeLetterModalBtn = document.querySelector(".close-letter-modal");
-            if(openLetterBtn) {
-                openLetterBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    letterModal.style.display = "block";
-                });
-            }
-            if(closeLetterModalBtn) {
-                closeLetterModalBtn.addEventListener('click', () => letterModal.style.display = "none");
-            }
-            
-            window.addEventListener('click', (e) => {
-                if (e.target == letterModal) letterModal.style.display = "none";
-            });
+            if(openLetterBtn) openLetterBtn.addEventListener('click', (e) => { e.stopPropagation(); letterModal.style.display = "block"; });
+            if(closeLetterModalBtn) closeLetterModalBtn.addEventListener('click', () => letterModal.style.display = "none");
+            window.addEventListener('click', (e) => { if (e.target == letterModal) letterModal.style.display = "none"; });
 
-            // Vertical Slider
             const slider = document.getElementById('vertical-slider');
             if(slider) {
                 const slides = slider.querySelectorAll('.v-slide');
@@ -603,7 +675,8 @@
         
         const initStardustEffect = () => {
             const canvas = document.getElementById('stardust-canvas');
-            if (!canvas) return;
+            if (!canvas || stardustInitialized) return;
+            stardustInitialized = true;
             const ctx = canvas.getContext('2d');
             let particles = [];
             const numParticles = 150;
@@ -614,11 +687,9 @@
                 particles = [];
                  for(let i=0; i<numParticles; i++) {
                     particles.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
+                        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
                         size: Math.random() * 2 + 0.5,
-                        speedX: (Math.random() * 1 - 0.5) * 0.5,
-                        speedY: (Math.random() * 1 - 0.5) * 0.5,
+                        speedX: (Math.random() * 1 - 0.5) * 0.5, speedY: (Math.random() * 1 - 0.5) * 0.5,
                         color: `rgba(226, 232, 240, ${Math.random() * 0.5 + 0.3})`
                     });
                 }
@@ -626,58 +697,54 @@
             
             const resizeObserver = new ResizeObserver(resizeCanvas);
             resizeObserver.observe(canvas.parentElement);
-            resizeCanvas();
-
+            
             let animationFrameId;
             function animate() {
-                if(!canvas.parentElement) {
-                    resizeObserver.disconnect();
-                    cancelAnimationFrame(animationFrameId);
-                    return;
-                }
+                if(!canvas.parentElement) { resizeObserver.disconnect(); cancelAnimationFrame(animationFrameId); return; }
                 ctx.clearRect(0,0, canvas.width, canvas.height);
-                for(let i=0; i<particles.length; i++) {
-                    let p = particles[i];
-                    p.x += p.speedX;
-                    p.y += p.speedY;
-                    
+                for(let p of particles) {
+                    p.x += p.speedX; p.y += p.speedY;
                     if(p.x > canvas.width || p.x < 0) p.speedX *= -1;
                     if(p.y > canvas.height || p.y < 0) p.speedY *= -1;
-                    
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color; ctx.fill();
                 }
                 animationFrameId = requestAnimationFrame(animate);
             }
             animate();
         };
 
-        // --- Initial Setup ---
-        prevBtn.addEventListener('click', goPrevPage);
-        nextBtn.addEventListener('click', goNextPage);
-
-        pages.forEach(page => page.addEventListener('click', e => {
-            if (e.target.closest('a, button, audio, .envelope-wrapper, .slider-nav')) return;
-            if(e.target.closest('.front-side') && !page.classList.contains('flipped')) goNextPage();
-        }));
-
-        document.addEventListener('keydown', (e) => {
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-             if (document.getElementById('letterModal').style.display === 'block') {
-                if (e.key === "Escape") document.getElementById('letterModal').style.display = "none";
-                return;
-            }
-            if (e.key === 'ArrowRight' || e.key === ' ') goNextPage();
-            if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPage();
-        });
-
-        updateButtons();
+        // --- Initial Setup Execution ---
         setupTheme();
         setupInteractiveElements();
         setupAmbientEffects();
         setupDayCounter();
+
+        if (isMobileView) {
+            prevBtn.addEventListener('click', goPrevPageMobile);
+            nextBtn.addEventListener('click', goNextPageMobile);
+            document.addEventListener('keydown', (e) => {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+                if (document.getElementById('letterModal').style.display === 'block') { if (e.key === "Escape") document.getElementById('letterModal').style.display = "none"; return; }
+                if (e.key === 'ArrowRight' || e.key === ' ') goNextPageMobile();
+                if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPageMobile();
+            });
+            updateMobileView();
+        } else {
+            prevBtn.addEventListener('click', goPrevPageDesktop);
+            nextBtn.addEventListener('click', goNextPageDesktop);
+            pages.forEach(page => page.addEventListener('click', e => {
+                if (e.target.closest('a, button, audio, .envelope-wrapper, .slider-nav')) return;
+                if(e.target.closest('.front-side') && !page.classList.contains('flipped')) goNextPageDesktop();
+            }));
+            document.addEventListener('keydown', (e) => {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+                if (document.getElementById('letterModal').style.display === 'block') { if (e.key === "Escape") document.getElementById('letterModal').style.display = "none"; return; }
+                if (e.key === 'ArrowRight' || e.key === ' ') goNextPageDesktop();
+                if (e.key === 'ArrowLeft' || e.key === 'Backspace') goPrevPageDesktop();
+            });
+            updateDesktopButtons();
+        }
     });
     </script>
 </body>
